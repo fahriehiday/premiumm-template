@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Premium Digital Product Template Registration Form</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #dbeafe, #f0f9ff);
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    h2 { text-align: center; color: #1e3a8a; }
+    input, select, button {
+      width: 100%; padding: 12px; margin: 10px 0;
+      border-radius: 10px; border: 1px solid #cbd5e1; font-size: 16px;
+    }
+    button {
+      background-color: #3b82f6; color: white; font-weight: bold;
+      border: none; transition: background-color 0.3s;
+      position: sticky; bottom: 10px; z-index: 10;
+    }
+    button:hover { background-color: #2563eb; }
+    label { font-weight: 600; }
+    .highlight {
+      background-color: #e0f2fe; padding: 8px; border-radius: 8px; margin-top: 8px;
+    }
+    .help-button {
+      background-color: #facc15; color: #1f2937; margin-top: 20px;
+    }
+    .thankyou {
+      display: none; text-align: center; padding: 20px;
+      background-color: #ecfdf5; color: #065f46; border-radius: 12px;
+      margin-top: 20px;
+    }
+    #toast {
+      display: none; position: fixed; bottom: 20px; right: 20px;
+      background: #4ade80; color: white; padding: 12px 18px;
+      border-radius: 8px; font-weight: bold;
+    }
+    #progress-container {
+      background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 16px;
+    }
+    #progress-bar {
+      background: #3b82f6; height: 10px; transition: width 0.3s ease; width: 50%;
+    }
+    .copy-btn {
+      background-color: #10b981; color: white; border: none;
+      border-radius: 8px; padding: 8px 12px; cursor: pointer; margin-top: 8px;
+    }
+    .harga-paket {
+      font-weight: bold; margin-top: 8px; display: block;
+    }
+    .countdown {
+      text-align: center; font-size: 14px; margin-top: 10px; color: #1e40af;
+    }
+    @media (max-width: 480px) {
+      body { padding: 10px; font-size: 14px; }
+      input, select, button { font-size: 14px; }
+    }
+    s {
+      color: #9ca3af; font-weight: normal; margin-right: 6px;
+      text-decoration: line-through;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎨 Template Produk Digital Premium</h2>
+  <div id="progress-container"><div id="progress-bar"></div></div>
+  <p style="text-align:center;">Langkah 1 dari 2</p>
+
+  <form id="regForm">
+    <label>Nama Lengkap</label>
+    <input type="text" name="nama" required />
+
+    <label>Nomor WhatsApp</label>
+    <input type="text" name="wa" required />
+
+    <label>Pilih Paket:</label>
+    <select name="paket" id="paket">
+      <option value="25000">🎉 Harga Semula <s>3̶4̶.̶9̶9̶9̶</s> Menjadi Rp25.000 / 1 Bulan</option>
+      <option value="45000">🎉 Harga Semula <s>5̶4̶.̶9̶9̶9̶</s> Menjadi Rp45.000 / 2 Bulan</option>
+      <option value="60000">🎉 Harga Semula <s>7̶4̶.̶9̶9̶9̶</s> Menjadi Rp60.000 / 3 Bulan</option>
+    </select>
+    <span class="harga-paket" id="hargaPaket"></span>
+
+    <label>Metode Pembayaran:</label>
+    <select name="pembayaran">
+      <option value="">-- Pilih Metode --</option>
+      <option value="DANA">DANA</option>
+      <option value="MANDIRI">Mandiri</option>
+    </select>
+
+    <div id="nomorPembayaran" class="highlight"></div>
+    <button type="button" class="copy-btn" id="salinBtn">📋 Salin Nomor</button>
+    <div class="countdown" id="countdown"></div>
+
+    <label>Upload Bukti Pembayaran (foto)</label>
+    <input type="file" name="bukti" accept="image/*" required />
+
+    <label>Buat Kode Referral Anda</label>
+    <input type="text" name="referral_baru" placeholder="Contoh: NAMAKAMU25" />
+
+    <label>Kode Referral Orang Lain (opsional)</label>
+    <input type="text" name="referral" id="referral" />
+
+    <div id="diskonInfo" class="highlight"></div>
+
+    <button type="button" id="submitBtn">Kirim Pendaftaran</button>
+  </form>
+
+  <button class="help-button" onclick="bukaBantuan()">❓ Butuh Bantuan?</button>
+
+  <div class="thankyou" id="thankyouMessage"></div>
+  <div id="toast"></div>
+
+  <script>
+    const metodePembayaran = document.querySelector('select[name="pembayaran"]');
+    const nomorPembayaran = document.getElementById("nomorPembayaran");
+    const paketSelect = document.getElementById("paket");
+    const hargaPaket = document.getElementById("hargaPaket");
+    const countdownEl = document.getElementById("countdown");
+    const salinBtn = document.getElementById("salinBtn");
+
+    let countdown;
+    let batasWaktu;
+
+    function tampilkanNomorDanQR(metode) {
+      if (metode === "DANA") {
+        nomorPembayaran.innerHTML = `💰 Transfer ke <strong id="targetNomor">0898-3637-8972</strong> a.n. Fahri Hidayat`;
+      } else if (metode === "MANDIRI") {
+        nomorPembayaran.innerHTML = `🏦 Transfer ke <strong id="targetNomor">1340030538796</strong> a.n. Fahri Hidayat`;
+      } else {
+        nomorPembayaran.innerHTML = "";
+      }
+    }
+
+    metodePembayaran.addEventListener("change", () => {
+      const metode = metodePembayaran.value;
+      tampilkanNomorDanQR(metode);
+    });
+
+    salinBtn.addEventListener("click", function () {
+      const target = document.getElementById("targetNomor");
+      if (target) {
+        const text = target.textContent.trim();
+        navigator.clipboard.writeText(text).then(() => {
+          alert("✅ Nomor berhasil disalin: " + text);
+        }).catch(err => {
+          alert("❌ Gagal menyalin: " + err);
+        });
+      } else {
+        alert("⚠️ Silakan pilih metode pembayaran terlebih dahulu.");
+      }
+    });
+
+    paketSelect.addEventListener("change", () => {
+      const harga = paketSelect.value;
+      hargaPaket.textContent = `💸 Total yang harus ditransfer: Rp${parseInt(harga).toLocaleString('id-ID')}`;
+
+      clearInterval(countdown);
+      const now = new Date();
+      batasWaktu = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+      countdown = setInterval(() => {
+        const sekarang = new Date();
+        const selisih = batasWaktu - sekarang;
+        if (selisih <= 0) {
+          clearInterval(countdown);
+          countdownEl.textContent = "⛔️ Waktu pembayaran telah habis.";
+        } else {
+          const jam = Math.floor(selisih / (1000 * 60 * 60));
+          const menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60));
+          const detik = Math.floor((selisih % (1000 * 60)) / 1000);
+          countdownEl.textContent = `⏱️ Batas Pembayaran: ${jam}j ${menit}m ${detik}d`;
+        }
+      }, 1000);
+    });
+
+    function bukaBantuan() {
+      const nama = document.querySelector('input[name="nama"]').value.trim();
+      const wa = document.querySelector('input[name="wa"]').value.trim();
+      const paket = document.querySelector('select[name="paket"]').value;
+      const metode = document.querySelector('select[name="pembayaran"]').value;
+      const nomor = "085928811220";
+
+      let pesan = `Halo, saya butuh bantuan.`;
+
+      if (nama !== "") {
+        pesan = `Halo, saya atas nama ${nama}`;
+        if (paket) pesan += `, memilih paket Rp${parseInt(paket).toLocaleString('id-ID')}`;
+        if (metode) pesan += `, menggunakan metode pembayaran ${metode}`;
+        if (wa) pesan += `. Nomor WA saya: ${wa}`;
+        pesan += ", saya butuh bantuan.";
+      }
+
+      window.open(`https://wa.me/${nomor}?text=${encodeURIComponent(pesan)}`, "_blank");
+    }
+
+    document.getElementById("submitBtn").addEventListener("click", function () {
+      const nama = document.querySelector('input[name="nama"]').value.trim();
+      const wa = document.querySelector('input[name="wa"]').value.trim();
+      const paketValue = document.querySelector('select[name="paket"]').value;
+      const paketText = document.querySelector('#paket option:checked').textContent;
+      const metode = document.querySelector('select[name="pembayaran"]').value;
+      const referralBaru = document.querySelector('input[name="referral_baru"]').value.trim();
+      const referral = document.querySelector('input[name="referral"]').value.trim();
+
+      if (!nama || !wa || !paketValue || !metode) {
+        alert("❗ Harap lengkapi semua data wajib sebelum mengirim.");
+        return;
+      }
+
+      let pesan = `📝 *Form Pendaftaran Produk Digital Premium*\n\n`;
+      pesan += `👤 Nama: ${nama}\n`;
+      pesan += `📞 WhatsApp: ${wa}\n`;
+      pesan += `📦 Paket Dipilih: ${paketText}\n`;
+      pesan += `💰 Total Transfer: Rp${parseInt(paketValue).toLocaleString('id-ID')}\n`;
+      pesan += `💳 Metode Pembayaran: ${metode}\n`;
+      if (referralBaru) pesan += `🔗 Kode Referral Baru: ${referralBaru}\n`;
+      if (referral) pesan += `👥 Kode Referral Teman: ${referral}\n`;
+      pesan += `📎 Bukti pembayaran sudah diupload melalui form.`;
+
+      const nomorAdmin = "085928811220";
+      window.open(`https://wa.me/${nomorAdmin}?text=${encodeURIComponent(pesan)}`, "_blank");
+    });
+  </script>
+</body>
+</html>
